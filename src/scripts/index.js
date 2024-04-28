@@ -3,23 +3,51 @@
 // console.log(getPoke("type/psychic"))
 function getPokemon(name) {
     return fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
-    .then( (response) => response.json())
-    .then((body) => (body))
+        .then( (response) => response.json())
+        .then((body) => (body)).catch( (error) => {
+            console.error(error)
+            console.log(response)
+        })
     
 }
-function pokeQuery(base,specifier,identifier) {
+function pokeQuery(specifier) {
     console.log(specifier)
     let specifiers = specifier.split(" ")
 
     return Promise.all(specifiers.map( (t) => {
-        return fetch(`https://pokeapi.co/api/v2/${base}/${t}`)
+        let q = t.split(":")
+        if(q.length !== 2) {
+            return []
+        }
+        return fetch(`https://pokeapi.co/api/v2/${q[0]}/${q[1]}`)
         .then( (response) => response.json())
         .then((body) => {
             output = []
+            switch(q[0]) {
+                case 'type':
+                    body.pokemon.forEach( (mon) => {
+                        // console.log(mon.pokemon.)
+                        output.push(mon.pokemon.name)
+                    })
+                    break;
+                case 'move':
+                    body.learned_by_pokemon.forEach( (mon) => {
+                        output.push(mon.name)
+                    })
+                    break;
+                case 'pokedex':
+                    body.pokemon_entries.forEach( (mon) => {
+                        output.push(mon.pokemon_species.name)
+                    })
+                    break;
+                case 'evolution-trigger':
+                    body.pokemon_species.forEach( (mon) => {
+                        output.push(mon.name)
+                    })
+                    break;
+            }
             
-            body[identifier].forEach( (mon) => {
-                output.push(mon.pokemon.name)
-            })
+            console.log(output)
             return output
 
         })
@@ -48,12 +76,19 @@ const text = document.getElementById("textin")
 const results = document.getElementById("results")
 button.addEventListener("click", () => {
     results.innerHTML = ""
-    pokeQuery("type",text.value,"pokemon").then( (names) => {
+    pokeQuery(text.value.trim()).then( (names) => {
         names.forEach( (mon) => {
             getPokemon(mon)
                 .then( (name) => {
-                        results.innerHTML += `<img src="${name.sprites.other["official-artwork"]["front_default"]}"></img>`
-                })
+                        if(name) {
+                            results.innerHTML += `<img title="${mon}" src="${name.sprites.other["official-artwork"]["front_default"]}"></img>`
+
+                        }
+                        // results.innerHTML += `<img title="${mon}" src="${name.sprites.front_default}"></img>`
+                        // results.innerHTML += `<img title="${mon}" src="${name.sprites.other.dream_world.front_default}"></img>`
+                        // results.innerHTML += `<img title="${mon}" src="${name.sprites.other.showdown.front_default}"></img>`
+                    })
+                
         })
     })
     // getTypes(text.value).then( (val) => {
