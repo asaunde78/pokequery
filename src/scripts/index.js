@@ -45,6 +45,11 @@ function pokeQuery(specifier) {
                         output.push(mon.name)
                     })
                     break;
+                case 'generation':
+                    body.pokemon_species.forEach( (mon) => {
+                        output.push(mon.name)
+                    })
+                    break;
             }
             
             console.log(output)
@@ -77,11 +82,11 @@ const results = document.getElementById("results")
 button.addEventListener("click", () => {
     results.innerHTML = ""
     pokeQuery(text.value.trim()).then( (names) => {
-        names.forEach( (mon) => {
+        names.forEach( (mon, i) => {
             getPokemon(mon)
                 .then( (name) => {
                         if(name) {
-                            results.innerHTML += `<img title="${mon}" src="${name.sprites.other["official-artwork"]["front_default"]}"></img>`
+                            results.innerHTML += `<img name=${i} title="${mon}" src="${name.sprites.other["official-artwork"]["front_default"]}"></img>`
 
                         }
                         // results.innerHTML += `<img title="${mon}" src="${name.sprites.front_default}"></img>`
