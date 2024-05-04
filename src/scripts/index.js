@@ -5,8 +5,9 @@ function getPokemon(name) {
     return fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
         .then( (response) => response.json())
         .then((body) => (body)).catch( (error) => {
-            console.error(error)
-            console.log(response)
+            // console.error(error)
+            // console.log(response)
+            console.log(name)
         })
     
 }
@@ -19,11 +20,33 @@ function pokeQuery(specifier) {
         if(q.length !== 2) {
             return []
         }
+        if(q[0] == 'noevol') {
+            q[0] = 'evolution-chain?limit=10000'
+        }
         return fetch(`https://pokeapi.co/api/v2/${q[0]}/${q[1]}`)
         .then( (response) => response.json())
         .then((body) => {
             output = []
             switch(q[0]) {
+                case 'evolution-chain?limit=10000':
+                    
+                    let a = Promise.all(
+                        body.results.map( (res) => {
+                             return fetch(res.url)
+                                .then( (respon) => respon.json() )
+                                .then(b => {
+                                    // console.log(b)
+                                    if(b.chain.evolution_details.length == 0 & b.chain.evolves_to.length == 0) {
+                                        // console.log(b)
+                                        // output.push(b.chain.species.name)
+                                        return b.chain.species.name 
+                                    }
+                                })
+                        })
+                    ).then( (arr) => {return arr.filter( (b) => b)})
+                    console.log(a)
+                    return a
+                    break
                 case 'type':
                     body.pokemon.forEach( (mon) => {
                         // console.log(mon.pokemon.)
@@ -61,6 +84,9 @@ function pokeQuery(specifier) {
         let ind = lengths.indexOf(Math.max(...lengths))
         let output = []
         for ( poke of mons[ind].values()) {
+            if(!poke) {
+                continue
+            }
             let inn = true
             for (others of mons.filter((v,i) => {return i!==ind})) {
                 if(!others.includes(poke) ) {
@@ -87,11 +113,11 @@ button.addEventListener("click", () => {
                 .then( (name) => {
                         if(name) {
                             results.innerHTML += `<img name=${i} title="${mon}" src="${name.sprites.other["official-artwork"]["front_default"]}"></img>`
-
+                            // results.innerHTML += `<img title="${mon}" src="${name.sprites.front_default}"></img>`
+                            // results.innerHTML += `<img title="${mon}" src="${name.sprites.other.dream_world.front_default}"></img>`
+                            // results.innerHTML += `<img title="${mon}" src="${name.sprites.other.showdown.front_default}"></img>`
                         }
-                        // results.innerHTML += `<img title="${mon}" src="${name.sprites.front_default}"></img>`
-                        // results.innerHTML += `<img title="${mon}" src="${name.sprites.other.dream_world.front_default}"></img>`
-                        // results.innerHTML += `<img title="${mon}" src="${name.sprites.other.showdown.front_default}"></img>`
+                        
                     })
                 
         })
